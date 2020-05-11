@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -31,6 +32,8 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 import com.tapadoo.alerter.Alerter;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -149,6 +152,23 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    public void loadDownloadedWallpapers() {
+        String path = Environment.getExternalStorageDirectory().toString() + "/Wallpy";
+        File directory = new File(path);
+        File[] files = directory.listFiles();
+        if (files != null) {
+            String[] downloadedFiles = new String[files.length];
+            for (int i = 0; i < files.length; i++) {
+                downloadedFiles[i] = files[i].toString();
+            }
+            List<String> downloadedWallpapers = Arrays.asList(downloadedFiles);
+            progressBar.setVisibility(View.INVISIBLE);
+            loadGrid(downloadedWallpapers);
+        }
+    }
+
+
+
 
     public void loadUrlsFromFirebase(String category){
         progressBar.setVisibility(View.VISIBLE);
@@ -263,6 +283,10 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_all) {
             loadUrlsFromFirebase("All");
             setTitle("New");
+        }
+        if (id == R.id.downlaods) {
+            loadDownloadedWallpapers();
+            setTitle("Downloads");
         }
         if (id == R.id.nav_anime) {
             // Handle the camera action
