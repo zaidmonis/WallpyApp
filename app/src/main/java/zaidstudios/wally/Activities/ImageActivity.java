@@ -86,7 +86,7 @@ public class ImageActivity extends AppCompatActivity {
 
 
         String root = Environment.getExternalStorageDirectory().toString();
-        myDir = new File(root + "/Wallpy/");
+        myDir = new File(root , "Wallpy");
         myDir.mkdirs();
 
 
