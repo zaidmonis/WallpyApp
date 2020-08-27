@@ -6,17 +6,22 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import android.view.Menu;
 import android.view.View;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -45,12 +50,11 @@ import zaidstudios.wally.R;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, URLStrings {
-
-
     GridView gridView;
     ImageView imageView;
     URLStrings urlStrings;
     int STORAGE_PERMISSION_CODE;
+    String currentVersion = "0";
 
     private DatabaseReference mDatabaseRef;
     private ValueEventListener mDBListener;
@@ -78,16 +82,15 @@ public class MainActivity extends AppCompatActivity
         gridView.setVisibility(View.INVISIBLE);
         //NavigationView navigationView;
 
-        if(isReadStorageAllowed()){
+        if (isReadStorageAllowed()) {
             //Already have the Permission
 
-        }
-        else {
+        } else {
             //app don't have permission, asking for the permission
             requestStoragePermission();
         }
 
-
+        checkForUpdates();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -110,8 +113,7 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        }
-        else{
+        } else {
             if (doubleBackToExitPressedOnce) {
                 super.onBackPressed();
                 return;
@@ -124,7 +126,7 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void run() {
-                    doubleBackToExitPressedOnce=false;
+                    doubleBackToExitPressedOnce = false;
                 }
             }, 2000);
         }
@@ -139,9 +141,9 @@ public class MainActivity extends AppCompatActivity
 
 
     public List<String> replace(List<String> list) {
-        String oldStr="";
-        String someString="m.jpg";
-        String otherString="l.jpg";
+        String oldStr = "";
+        String someString = "m.jpg";
+        String otherString = "l.jpg";
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).contains(someString)) {
                 oldStr = list.get(i).replace(someString, otherString);
@@ -168,12 +170,10 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-
-    public void loadUrlsFromFirebase(String category){
+    public void loadUrlsFromFirebase(String category) {
         progressBar.setVisibility(View.VISIBLE);
         gridView.setVisibility(View.INVISIBLE);
-        if (!CheckConnection.isOnline(this)){
+        if (!CheckConnection.isOnline(this)) {
             Alerter.create(MainActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
         }
         mDatabaseRef = FirebaseDatabase.getInstance().getReference(category);
@@ -182,19 +182,15 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //mStrings.clear();
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    //Upload upload = postSnapshot.getValue(Upload.class);
-
-                    //upload.setKey(postSnapshot.getKey());
-                    //mStrings.add(string);
-
 
                 }
 
-                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {};
+                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {
+                };
 
                 List<String> yourStringArray = dataSnapshot.getValue(t);
 
-                if (loadHDThumb){
+                if (loadHDThumb) {
                     yourStringArray = convertURLsToHD(yourStringArray);
                 }
                 System.out.println(yourStringArray);
@@ -204,23 +200,6 @@ public class MainActivity extends AppCompatActivity
                 gridView.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.INVISIBLE);
                 loadGrid(yourStringArray);
-
-
-
-                //mStrings = new ArrayList<>(dataSnapshot.getValue());
-                //arrUrls =(String[]) string;
-                //System.out.println(dataSnapshot.getValue());
-
-                //mAdapter.notifyDataSetChanged();
-
-                //mProgressCircle.setVisibility(View.INVISIBLE);
-
-
-                /*int s = mStrings.size();
-                String ss = String.valueOf(s);
-                Toast.makeText(ImagesActivity.this, ss, Toast.LENGTH_SHORT).show();
-                Collections.reverse(mStrings);*/
-
             }
 
             @Override
@@ -229,16 +208,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
-
-
-
-
-
-
-
-
-
-
 
     @Override
     protected void onStop() {
@@ -252,20 +221,13 @@ public class MainActivity extends AppCompatActivity
         stopService(new Intent(MainActivity.this, MyScanService.class));
     }
 
-    /*@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }*/
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        switch (item.getItemId()){
-            case R.id.action_settings:{
+        switch (item.getItemId()) {
+            case R.id.action_settings: {
                 startActivity(new Intent(MainActivity.this, SettingsActivity.class));
                 finish();
                 break;
@@ -293,44 +255,34 @@ public class MainActivity extends AppCompatActivity
             //Toast.makeText(this, id, Toast.LENGTH_SHORT).show();
             loadUrlsFromFirebase("Anime");
             setTitle("Anime");
-        }
-        else if (id == R.id.nav_girls) {
+        } else if (id == R.id.nav_girls) {
             loadUrlsFromFirebase("Girls");
             setTitle("Girls");
-        }
-        else if (id == R.id.nav_iphone){
+        } else if (id == R.id.nav_iphone) {
             loadUrlsFromFirebase("iPhone");
             setTitle("iPhone");
-        }
-        else if (id == R.id.amoled) {
+        } else if (id == R.id.amoled) {
             loadUrlsFromFirebase("Amoled");
             setTitle("Black");
-        }
-        else if (id == R.id.sports) {
+        } else if (id == R.id.sports) {
             loadUrlsFromFirebase("Sports");
             setTitle("Sports");
-        }
-        else if (id == R.id.nature) {
+        } else if (id == R.id.nature) {
             loadUrlsFromFirebase("Nature");
             setTitle("Nature");
-        }
-        else if (id == R.id.nav_3d) {
+        } else if (id == R.id.nav_3d) {
             loadUrlsFromFirebase("3D");
             setTitle("3D");
-        }
-        else if (id == R.id.animals) {
+        } else if (id == R.id.animals) {
             loadUrlsFromFirebase("Animals");
             setTitle("Animals");
-        }
-        else if (id == R.id.nav_city) {
+        } else if (id == R.id.nav_city) {
             loadUrlsFromFirebase("CityScapes");
             setTitle("CityScapes");
-        }
-        else if (id == R.id.abstracte){
+        } else if (id == R.id.abstracte) {
             loadUrlsFromFirebase("Abstract");
             setTitle("Abstract");
-        }
-        else if (id == R.id.nav_cars){
+        } else if (id == R.id.nav_cars) {
             loadUrlsFromFirebase("Cars");
             setTitle("Cars");
         }
@@ -340,8 +292,8 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void loadGrid(final List<String> url){
-        gridView.setAdapter(new ImageListAdapter(this, url, imageView ));
+    public void loadGrid(final List<String> url) {
+        gridView.setAdapter(new ImageListAdapter(this, url, imageView));
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -352,17 +304,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
-
-
-
-
-
-
-
-
-
-
-
 
     public boolean isReadStorageAllowed() {
         //Getting the permission status
@@ -377,14 +318,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     //Requesting permission
-    public void requestStoragePermission(){
+    public void requestStoragePermission() {
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
         }
 
         //And finally ask for the permission
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
     }
 
 
@@ -393,24 +334,54 @@ public class MainActivity extends AppCompatActivity
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         //Checking the request code of our request
-        if(requestCode == STORAGE_PERMISSION_CODE){
+        if (requestCode == STORAGE_PERMISSION_CODE) {
 
             //If permission is granted
-            if(grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //Permission Granted
-            }else{
+            } else {
                 //permission is not granted, Requesting again
                 Toast.makeText(this, "Please click Allow to save Wallpapers in Device!", Toast.LENGTH_SHORT).show();
                 //ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
             }
         }
     }
-    public List<String> convertURLsToHD(List<String> yourStringArray){
-        for (int i = 0 ; i<yourStringArray.size() ; i++){
+
+    public List<String> convertURLsToHD(List<String> yourStringArray) {
+        for (int i = 0; i < yourStringArray.size(); i++) {
             yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpg", "h.jpg"));
             yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.png", "h.png"));
             yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpeg", "h.jepg"));
         }
         return yourStringArray;
+    }
+
+    private void checkForUpdates() {
+        if (!CheckConnection.isOnline(this)) {
+            Alerter.create(MainActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
+        }
+
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference("CurrentVersion");
+        mDBListener = mDatabaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {
+                };
+
+                List<String> yourStringArray = dataSnapshot.getValue(t);
+                currentVersion = yourStringArray.get(0);
+                if (Integer.parseInt(currentVersion) > 1) {
+                    Toast.makeText(MainActivity.this, "Please Update the app ", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "App is updated", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 }
