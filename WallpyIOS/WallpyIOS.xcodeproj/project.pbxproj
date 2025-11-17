@@ -30,27 +30,27 @@ objects = {
 
 /* Begin PBXFileReference section */
 1A1A00001 /* WallpyIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WallpyIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
-1A1A01001 /* WallpyIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/App/WallpyIOSApp.swift; sourceTree = "<group>"; };
-1A1A01002 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/App/AppEnvironment.swift; sourceTree = "<group>"; };
-1A1A01010 /* FirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Config/FirebaseConfig.swift; sourceTree = "<group>"; };
-1A1A01011 /* FirebaseConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = WallpyIOS/Config/FirebaseConfig.plist; sourceTree = "<group>"; };
-1A1A01020 /* Wallpaper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Models/Wallpaper.swift; sourceTree = "<group>"; };
-1A1A01021 /* WallpaperCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Models/WallpaperCategory.swift; sourceTree = "<group>"; };
-1A1A01030 /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Networking/FirebaseService.swift; sourceTree = "<group>"; };
-1A1A01040 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Services/ImageCache.swift; sourceTree = "<group>"; };
-1A1A01041 /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Services/PhotoLibraryService.swift; sourceTree = "<group>"; };
-1A1A01042 /* ImgurURLTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Services/ImgurURLTransformer.swift; sourceTree = "<group>"; };
-1A1A01050 /* WallpaperGridViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/ViewModels/WallpaperGridViewModel.swift; sourceTree = "<group>"; };
-1A1A01060 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/ContentView.swift; sourceTree = "<group>"; };
-1A1A01061 /* WallpaperGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/WallpaperGridView.swift; sourceTree = "<group>"; };
-1A1A01062 /* WallpaperDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/WallpaperDetailView.swift; sourceTree = "<group>"; };
-1A1A01070 /* CategoryPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/Components/CategoryPicker.swift; sourceTree = "<group>"; };
-1A1A01071 /* RemoteImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/Components/RemoteImageView.swift; sourceTree = "<group>"; };
-1A1A01072 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/Components/SettingsView.swift; sourceTree = "<group>"; };
-1A1A01073 /* WallpaperCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOS/Views/Components/WallpaperCard.swift; sourceTree = "<group>"; };
-1A1A01080 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = WallpyIOS/Resources/Assets.xcassets; sourceTree = "<group>"; };
-1A1A01081 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "WallpyIOS/Resources/Preview Content/Preview Assets.xcassets"; sourceTree = "<group>"; };
-1A1A01090 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = WallpyIOS/Info.plist; sourceTree = "<group>"; };
+1A1A01001 /* WallpyIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpyIOSApp.swift; sourceTree = "<group>"; };
+1A1A01002 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+1A1A01010 /* FirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseConfig.swift; sourceTree = "<group>"; };
+1A1A01011 /* FirebaseConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = FirebaseConfig.plist; sourceTree = "<group>"; };
+1A1A01020 /* Wallpaper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wallpaper.swift; sourceTree = "<group>"; };
+1A1A01021 /* WallpaperCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperCategory.swift; sourceTree = "<group>"; };
+1A1A01030 /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseService.swift; sourceTree = "<group>"; };
+1A1A01040 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+1A1A01041 /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
+1A1A01042 /* ImgurURLTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImgurURLTransformer.swift; sourceTree = "<group>"; };
+1A1A01050 /* WallpaperGridViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperGridViewModel.swift; sourceTree = "<group>"; };
+1A1A01060 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+1A1A01061 /* WallpaperGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperGridView.swift; sourceTree = "<group>"; };
+1A1A01062 /* WallpaperDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperDetailView.swift; sourceTree = "<group>"; };
+1A1A01070 /* CategoryPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryPicker.swift; sourceTree = "<group>"; };
+1A1A01071 /* RemoteImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageView.swift; sourceTree = "<group>"; };
+1A1A01072 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+1A1A01073 /* WallpaperCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperCard.swift; sourceTree = "<group>"; };
+1A1A01080 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+1A1A01081 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content/Preview Assets.xcassets"; sourceTree = "<group>"; };
+1A1A01090 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
