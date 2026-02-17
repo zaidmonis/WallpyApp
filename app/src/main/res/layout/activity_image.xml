@@ -55,6 +55,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/downloadButton"
             android:elevation="20dp"
+            android:layout_marginHorizontal="10dp"
             android:padding="2dp"
             android:background="@drawable/ripple_draw"
             android:layout_weight=".33"
@@ -64,6 +65,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight=".33"
+            android:layout_marginHorizontal="10dp"
             android:id="@+id/setButton"
             android:text="@string/set_as"
             android:background="@drawable/ripple_draw"/>
@@ -73,6 +75,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight=".33"
+            android:layout_marginHorizontal="10dp"
             android:background="@drawable/ripple_draw"
             android:elevation="20dp"
             android:padding="2dp"
