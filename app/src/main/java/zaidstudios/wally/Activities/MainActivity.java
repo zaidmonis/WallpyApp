@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
 
         doubleBackToExitPressedOnce = false;
 
-        loadHDThumb = getSharedPreferences("isHDThumb", MODE_PRIVATE).getBoolean("HDThumb", false);
+        loadHDThumb = getSharedPreferences("isHDThumb", MODE_PRIVATE).getBoolean("HDThumb", true);
 
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
@@ -175,8 +175,11 @@ public class MainActivity extends AppCompatActivity
                 List<String> yourStringArray = dataSnapshot.getValue(t);
 
                 if (yourStringArray != null) {
+                    Toast.makeText(getApplicationContext(), yourStringArray.get(0), Toast.LENGTH_LONG).show();
                     if (loadHDThumb) {
                         yourStringArray = convertURLsToHD(yourStringArray);
+                    } else {
+                        yourStringArray = convertURLsToSD(yourStringArray);
                     }
                     Collections.reverse(yourStringArray);
                     recyclerView.setVisibility(View.VISIBLE);
@@ -301,9 +304,18 @@ public class MainActivity extends AppCompatActivity
 
     public List<String> convertURLsToHD(List<String> yourStringArray) {
         for (int i = 0; i < yourStringArray.size(); i++) {
-            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpg", ".jpg"));
-            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.png", ".png"));
-            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpeg", ".jpeg"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll(".jpg", "l.jpg"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll(".png", "l.png"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll(".jpeg", "l.jpeg"));
+        }
+        return yourStringArray;
+    }
+
+    public List<String> convertURLsToSD(List<String> yourStringArray) {
+        for (int i = 0; i < yourStringArray.size(); i++) {
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll(".jpg", "m.jpg"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll(".png", "m.png"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll(".jpeg", "m.jpeg"));
         }
         return yourStringArray;
     }

@@ -73,6 +73,7 @@ public class ImageActivity extends AppCompatActivity {
             if (imageUrl.startsWith("http")) {
                 // It's a remote URL
                 final String wallUrl = convertURLsToOriginal(imageUrl);
+                Toast.makeText(this, imageUrl, Toast.LENGTH_LONG).show();
                 if (isImageDownloaded(wallUrl)) {
                     downloadButton.setVisibility(View.GONE);
                     deleteButton.setVisibility(View.VISIBLE);
@@ -305,9 +306,9 @@ public class ImageActivity extends AppCompatActivity {
 
     public String convertURLsToOriginal(String url) {
         if (url == null) return "";
-        url = url.replaceAll("h.jpg", ".jpg");
-        url = url.replaceAll("h.png", ".png");
-        url = url.replaceAll("h.jpeg", ".jpeg");
+        url = url.replaceAll("l.jpg", ".jpg");
+        url = url.replaceAll("l.png", ".png");
+        url = url.replaceAll("l.jpeg", ".jpeg");
         url = url.replaceAll("m.jpg", ".jpg");
         url = url.replaceAll("m.png", ".png");
         url = url.replaceAll("m.jpeg", ".jpeg");
