@@ -1,22 +1,35 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+}
 
 android {
-    compileSdkVersion 29
+    namespace "zaidstudios.wally"
+    compileSdk 33
+
     defaultConfig {
         applicationId "zaidstudios.wally"
-        minSdkVersion 19
-        targetSdkVersion 29
+        minSdk 21
+        targetSdk 33
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
+        vectorDrawables {
+            useSupportLibrary true
+        }
     }
+
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -36,10 +49,13 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.11.0'
+
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 
     implementation 'com.github.jrvansuita:MaterialAbout:0.2.3'
 
-    implementation 'com.tapadoo.android:alerter:2.0.5'
+    implementation 'com.github.tapadoo:alerter:7.2.4'
 
 
     implementation 'com.google.firebase:firebase-database:19.3.0'
@@ -47,11 +63,5 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:19.3.1'
     implementation 'com.google.firebase:firebase-core:17.4.1'
 
-
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.4.0'
-    implementation 'com.github.bumptech.glide:okhttp3-integration:4.4.0'
-
     implementation 'com.edmodo:cropper:1.0.1'
 }
-
-apply plugin: 'com.google.gms.google-services'

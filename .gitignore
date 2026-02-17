@@ -7,10 +7,7 @@
 /build
 /captures
 .externalNativeBuild
-build
 .idea
-.gradle
-gradle*
 out
 /app/release
 /app/google-services.json
