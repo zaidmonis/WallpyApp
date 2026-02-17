@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/wallpy_new"
@@ -30,14 +32,9 @@
         <activity android:name=".Activities.AboutActivity" />
 
         <activity android:name=".Activities.SettingsActivity" />
-        <service
-            android:name=".Helper.MyScanService"
-            android:enabled="true"
-            android:exported="false" />
     </application>
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 

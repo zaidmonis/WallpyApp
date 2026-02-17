@@ -3,32 +3,29 @@ package zaidstudios.wally.Activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.view.Menu;
-import android.view.View;
-
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,40 +35,35 @@ import com.google.firebase.database.ValueEventListener;
 import com.tapadoo.alerter.Alerter;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import zaidstudios.wally.Helper.CheckConnection;
 import zaidstudios.wally.Helper.ImageListAdapter;
-import zaidstudios.wally.ImageURLs.URLStrings;
-import zaidstudios.wally.Helper.MyScanService;
 import zaidstudios.wally.R;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, URLStrings {
+        implements NavigationView.OnNavigationItemSelectedListener {
     GridView gridView;
     ImageView imageView;
-    URLStrings urlStrings;
-    int STORAGE_PERMISSION_CODE;
-    String currentVersion = "0";
+    private static final int STORAGE_PERMISSION_CODE = 101;
+    int currentVersion = 2;
 
     private DatabaseReference mDatabaseRef;
-    private ValueEventListener mDBListener;
     private ProgressBar progressBar;
     boolean loadHDThumb;
     boolean doubleBackToExitPressedOnce;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //loadHDThumb = false;
         doubleBackToExitPressedOnce = false;
-
 
         loadHDThumb = getSharedPreferences("isHDThumb", MODE_PRIVATE).getBoolean("HDThumb", false);
 
@@ -80,37 +72,27 @@ public class MainActivity extends AppCompatActivity
         imageView = findViewById(R.id.imageView);
         gridView.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
         gridView.setVisibility(View.INVISIBLE);
-        //NavigationView navigationView;
 
-        if (isReadStorageAllowed()) {
-            //Already have the Permission
-
-        } else {
-            //app don't have permission, asking for the permission
+        if (!isStoragePermissionGranted()) {
             requestStoragePermission();
         }
 
         checkForUpdates();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.getMenu().getItem(0).setChecked(true);
-        //navigationView.callOnClick();
+        navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        onNavigationItemSelected(navigationView.getMenu().getItem(0));
-
+        loadCategories();
     }
-
 
     @Override
     public void onBackPressed() {
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -123,14 +105,12 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
 
             new Handler().postDelayed(new Runnable() {
-
                 @Override
                 public void run() {
                     doubleBackToExitPressedOnce = false;
                 }
             }, 2000);
         }
-
     }
 
     @Override
@@ -139,36 +119,31 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-
-    public List<String> replace(List<String> list) {
-        String oldStr = "";
-        String someString = "m.jpg";
-        String otherString = "l.jpg";
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).contains(someString)) {
-                oldStr = list.get(i).replace(someString, otherString);
-                list.set(i, oldStr);
-            }
-        }
-        return list;
-    }
-
-
     public void loadDownloadedWallpapers() {
-        String path = Environment.getExternalStorageDirectory().toString() + "/Wallpy";
+        progressBar.setVisibility(View.VISIBLE);
+        gridView.setVisibility(View.INVISIBLE);
+
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/Wallpy";
         File directory = new File(path);
-        File[] files = directory.listFiles();
-        if (files != null) {
-            String[] downloadedFiles = new String[files.length];
-            for (int i = 0; i < files.length; i++) {
-                downloadedFiles[i] = files[i].toString();
+        List<String> downloadedWallpapers = new ArrayList<>();
+        if (directory.exists() && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file != null && file.isFile()) {
+                        downloadedWallpapers.add(file.getAbsolutePath());
+                    }
+                }
             }
-            List<String> downloadedWallpapers = Arrays.asList(downloadedFiles);
-            progressBar.setVisibility(View.INVISIBLE);
-            loadGrid(downloadedWallpapers);
+        }
+
+        progressBar.setVisibility(View.INVISIBLE);
+        gridView.setVisibility(View.VISIBLE);
+        loadGrid(downloadedWallpapers);
+        if (downloadedWallpapers.isEmpty()) {
+            Toast.makeText(this, "No downloaded wallpapers found.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     public void loadUrlsFromFirebase(String category) {
         progressBar.setVisibility(View.VISIBLE);
@@ -177,115 +152,98 @@ public class MainActivity extends AppCompatActivity
             Alerter.create(MainActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
         }
         mDatabaseRef = FirebaseDatabase.getInstance().getReference(category);
-        mDBListener = mDatabaseRef.addValueEventListener(new ValueEventListener() {
+        mDatabaseRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                //mStrings.clear();
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-
-                }
-
-                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {
-                };
-
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() { };
                 List<String> yourStringArray = dataSnapshot.getValue(t);
 
-                if (loadHDThumb) {
-                    yourStringArray = convertURLsToHD(yourStringArray);
+                if (yourStringArray != null) {
+                    if (loadHDThumb) {
+                        yourStringArray = convertURLsToHD(yourStringArray);
+                    }
+                    Collections.reverse(yourStringArray);
+                    gridView.setVisibility(View.VISIBLE);
+                    loadGrid(yourStringArray);
                 }
-                System.out.println(yourStringArray);
-                Collections.reverse(yourStringArray);
-                //List<String> newArray = replace(yourStringArray);
-
-                gridView.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.INVISIBLE);
-                loadGrid(yourStringArray);
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(MainActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        //stopService(new Intent(MainActivity.this, MyScanService.class));
-    }
+    private void loadCategories() {
+        DatabaseReference categoriesRef = FirebaseDatabase.getInstance().getReference();
+        categoriesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                final Menu menu = navigationView.getMenu();
+                menu.clear(); // Clear existing menu items
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopService(new Intent(MainActivity.this, MyScanService.class));
+                // Add static menu items first
+                menu.add(R.id.group_static, R.id.nav_all, Menu.NONE, "New").setIcon(R.drawable.ic_sync_black_24dp).setCheckable(true);
+                menu.add(R.id.group_static, R.id.downlaods, Menu.NONE, "Downloads").setIcon(R.drawable.ic_info_black_24dp).setCheckable(true);
+
+                // Dynamically add categories from Firebase
+                List<String> categoryList = new ArrayList<>();
+                for (DataSnapshot categorySnapshot : dataSnapshot.getChildren()) {
+                    String categoryName = categorySnapshot.getKey();
+                    if (categoryName != null && !categoryName.equals("CurrentVersion") && !categoryName.equals("currentVersionCode")) {
+                        categoryList.add(categoryName);
+                    }
+                }
+                Collections.sort(categoryList);
+                for(String categoryName : categoryList){
+                    menu.add(R.id.group_dynamic, Menu.NONE, Menu.NONE, categoryName).setIcon(R.drawable.ic_notifications_black_24dp).setCheckable(true);
+                }
+                // Set the first item as selected
+                if (menu.size() > 0) {
+                    MenuItem firstItem = menu.getItem(0);
+                    firstItem.setChecked(true);
+                    onNavigationItemSelected(firstItem);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this, "Failed to load categories.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_settings) {
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
-            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
+        String title = item.getTitle().toString();
 
         if (id == R.id.nav_all) {
             loadUrlsFromFirebase("All");
             setTitle("New");
-        }
-        if (id == R.id.downlaods) {
+        } else if (id == R.id.downlaods) {
             loadDownloadedWallpapers();
             setTitle("Downloads");
+        } else {
+            loadUrlsFromFirebase(title);
+            setTitle(title);
         }
-        if (id == R.id.nav_anime) {
-            // Handle the camera action
-            //Toast.makeText(this, id, Toast.LENGTH_SHORT).show();
-            loadUrlsFromFirebase("Anime");
-            setTitle("Anime");
-        } else if (id == R.id.nav_girls) {
-            loadUrlsFromFirebase("Girls");
-            setTitle("Girls");
-        } else if (id == R.id.nav_iphone) {
-            loadUrlsFromFirebase("iPhone");
-            setTitle("iPhone");
-        } else if (id == R.id.amoled) {
-            loadUrlsFromFirebase("Amoled");
-            setTitle("Black");
-        } else if (id == R.id.sports) {
-            loadUrlsFromFirebase("Sports");
-            setTitle("Sports");
-        } else if (id == R.id.nature) {
-            loadUrlsFromFirebase("Nature");
-            setTitle("Nature");
-        } else if (id == R.id.nav_3d) {
-            loadUrlsFromFirebase("3D");
-            setTitle("3D");
-        } else if (id == R.id.animals) {
-            loadUrlsFromFirebase("Animals");
-            setTitle("Animals");
-        } else if (id == R.id.nav_city) {
-            loadUrlsFromFirebase("CityScapes");
-            setTitle("CityScapes");
-        } else if (id == R.id.abstracte) {
-            loadUrlsFromFirebase("Abstract");
-            setTitle("Abstract");
-        } else if (id == R.id.nav_cars) {
-            loadUrlsFromFirebase("Cars");
-            setTitle("Cars");
-        }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
 
     public void loadGrid(final List<String> url) {
         gridView.setAdapter(new ImageListAdapter(this, url, imageView));
@@ -293,51 +251,42 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Intent intent = new Intent(getApplicationContext(), ImageActivity.class);
-                //ActivityOptions activityOptions = ActivityOptions.makeCustomAnimation(getApplicationContext(), R.anim.zoom_in, R.anim.fade_out);
                 intent.putExtra("url", url.get(position));
-                startActivity(intent);//,activityOptions.toBundle());
+                startActivity(intent);
             }
         });
     }
 
-    public boolean isReadStorageAllowed() {
-        //Getting the permission status
-        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        //If permission is granted returning true
-        if (result == PackageManager.PERMISSION_GRANTED)
-            return true;
-
-        //If permission is not granted returning false
-        return false;
-    }
-
-    //Requesting permission
-    public void requestStoragePermission() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+    private boolean isStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+            } else {
+                return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            }
+        } else {
+            return true; // Permissions are granted at install time on older versions
         }
-
-        //And finally ask for the permission
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
     }
 
+    private void requestStoragePermission() {
+        String[] permissions;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions = new String[]{Manifest.permission.READ_MEDIA_IMAGES};
+        } else {
+            permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+        }
+        ActivityCompat.requestPermissions(this, permissions, STORAGE_PERMISSION_CODE);
+    }
 
-    //This method will be called when the user will tap on allow or deny
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        //Checking the request code of our request
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == STORAGE_PERMISSION_CODE) {
-
-            //If permission is granted
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //Permission Granted
+                Toast.makeText(this, "Permission granted.", Toast.LENGTH_SHORT).show();
             } else {
-                //permission is not granted, Requesting again
-                Toast.makeText(this, "Please click Allow to save Wallpapers in Device!", Toast.LENGTH_SHORT).show();
-                //ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
+                Toast.makeText(this, "Permission denied. You cannot view downloaded wallpapers.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -357,26 +306,25 @@ public class MainActivity extends AppCompatActivity
         }
 
         mDatabaseRef = FirebaseDatabase.getInstance().getReference("CurrentVersion");
-        mDBListener = mDatabaseRef.addValueEventListener(new ValueEventListener() {
+        mDatabaseRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {
-                };
-
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() { };
                 List<String> yourStringArray = dataSnapshot.getValue(t);
-                currentVersion = yourStringArray.get(0);
-                if (Integer.parseInt(currentVersion) > 1) {
-                    Toast.makeText(MainActivity.this, "Please Update the app ", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "App is updated", Toast.LENGTH_SHORT).show();
+                if (yourStringArray != null && !yourStringArray.isEmpty()) {
+                    String actualVersion = yourStringArray.get(0);
+                    if (Integer.parseInt(actualVersion) > currentVersion) {
+                        Toast.makeText(MainActivity.this, "Please Update the app ", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Toast.makeText(MainActivity.this, "App is updated", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(MainActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 }

@@ -1,52 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_all"
-            android:title="New" />
-        <item
-            android:id="@+id/downlaods"
-            android:title="Downloads" />
-    </group>
+    <group android:id="@+id/group_static" android:checkableBehavior="single"/>
+    <group android:id="@+id/group_dynamic" android:checkableBehavior="single"/>
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_3d"
-            android:title="3D" />
-        <item
-            android:id="@+id/abstracte"
-            android:title="Abstract" />
-        <item
-            android:id="@+id/amoled"
-            android:title="AMOLED Black" />
-        <item
-            android:id="@+id/animals"
-            android:title="Animals" />
-        <item
-            android:id="@+id/nav_anime"
-            android:title="Anime" />
-        <item
-            android:id="@+id/nav_cars"
-            android:title="Cars" />
-        <item
-            android:id="@+id/nav_city"
-            android:title="CityScapes" />
-        <item
-            android:id="@+id/nav_girls"
-            android:title="Girls" />
-        <item
-            android:id="@+id/nav_iphone"
-            android:title="iPhone" />
-        <item
-            android:id="@+id/nature"
-            android:title="Nature" />
-        <item
-            android:id="@+id/sports"
-            android:title="Sports" />
-    </group>
 </menu>
-<!--android:checkableBehavior="single"-->

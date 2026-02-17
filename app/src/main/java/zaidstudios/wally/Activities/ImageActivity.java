@@ -1,23 +1,27 @@
 package zaidstudios.wally.Activities;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Environment;
-import android.os.StrictMode;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.request.RequestOptions;
@@ -26,11 +30,10 @@ import com.bumptech.glide.request.transition.Transition;
 import com.tapadoo.alerter.Alerter;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 import zaidstudios.wally.Helper.CheckConnection;
 import zaidstudios.wally.Helper.GlideImageLoader;
-import zaidstudios.wally.Helper.MyScanService;
 import zaidstudios.wally.R;
 
 public class ImageActivity extends AppCompatActivity {
@@ -38,27 +41,11 @@ public class ImageActivity extends AppCompatActivity {
     TextView loadingTextView;
     ProgressBar progressBar;
     Button setButton, downloadButton, backButton;
-    //MainActivity mainActivity;
-    int STORAGE_PERMISSION_CODE;
-    File wallfile;
-    ImageActivity img;
-
-    File myDir;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        //        WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setTitle("");
-
-
-
-        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-        StrictMode.setVmPolicy(builder.build());
-
-
 
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -67,10 +54,6 @@ public class ImageActivity extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
                         | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-
-
-
-
 
         setContentView(R.layout.activity_image);
         imageView = findViewById(R.id.fullImage);
@@ -83,213 +66,147 @@ public class ImageActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         loadingTextView.setVisibility(View.VISIBLE);
 
+        final String imageUrl = getIntent().getStringExtra("url");
 
+        if (imageUrl != null && imageUrl.startsWith("http")) {
+            // It's a remote URL
+            final String wallUrl = convertURLsToOriginal(imageUrl);
+            Glide.with(ImageActivity.this).load(imageUrl).into(bImageView);
 
-        String root = Environment.getExternalStorageDirectory().toString();
-        myDir = new File(root , "Wallpy");
-        myDir.mkdirs();
-
-
-        final String bimageURL = getIntent().getStringExtra("url");
-
-        final String wallUrl = convertURLsToOriginal(bimageURL);
-
-
-        String fname = wallUrl.replaceAll("https://i.imgur.com/", "");
-            final File imageFile = new File(myDir, fname);
-        if (imageFile.isFile()){
-            Glide.with(ImageActivity.this).load(imageFile).into(bImageView);
-            progressBar.setVisibility(View.GONE);
-            loadingTextView.setVisibility(View.GONE);
-        }
-        else{
-            Glide.with(ImageActivity.this).load(bimageURL).into(bImageView);
-
-
-            if (!CheckConnection.isOnline(this)){
+            if (!CheckConnection.isOnline(this)) {
                 Alerter.create(ImageActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
             }
-
-
 
             RequestOptions options = new RequestOptions().priority(Priority.HIGH);
 
             GlideImageLoader gil = new GlideImageLoader(imageView, progressBar, loadingTextView, bImageView, this);
-            gil.load(wallUrl,options);
-            //loadingTextView.setVisibility(View.GONE);
-            //loadingTextView.setText(String.valueOf(progressBar.getProgress()));
+            gil.load(wallUrl, options);
 
+            setButton.setOnClickListener(v -> {
+                if (isStoragePermissionGranted()) {
+                    downloadAndSetWallpaper(wallUrl);
+                } else {
+                    requestStoragePermission();
+                }
+            });
 
+            downloadButton.setOnClickListener(v -> {
+                if (isStoragePermissionGranted()) {
+                    downloadAndSaveImage(wallUrl);
+                } else {
+                    requestStoragePermission();
+                }
+            });
+        } else {
+            // It's a local file path
+            downloadButton.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
+            loadingTextView.setVisibility(View.GONE);
+            bImageView.setVisibility(View.GONE);
 
+            File localFile = new File(imageUrl);
+            Glide.with(ImageActivity.this).load(localFile).into(imageView);
 
-
-//            Glide.with(ImageActivity.this).load(wallUrl).listener(new RequestListener<Drawable>() {
-//                @Override
-//                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-//                    progressBar.setVisibility(View.GONE);
-//                    Toast.makeText(ImageActivity.this, "Unable to Load!", Toast.LENGTH_SHORT).show();
-//                    return false;
-//                }
-//
-//                @Override
-//                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-//                    bImageView.setVisibility(View.GONE);
-//                    progressBar.setVisibility(View.GONE);
-//                    loadingTextView.setVisibility(View.GONE);
-//                    return false;
-//                }
-//            }).into(imageView);
+            setButton.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
+                intent.addCategory(Intent.CATEGORY_DEFAULT);
+                Uri imageUri = Uri.fromFile(localFile);
+                intent.setDataAndType(imageUri, "image/jpeg");
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(intent, "Set as:"));
+            });
         }
 
+        backButton.setOnClickListener(view -> onBackPressed());
+    }
 
-
-        setButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isReadStorageAllowed()){
-                    if (imageFile.isFile()){
-                        /*Intent intent = new Intent(ImageActivity.this, SetWallpaperActivity.class);
-                        intent.putExtra("file", imageFile.getAbsolutePath());
-                        startActivity(intent);*/
-                        Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
-                        intent.setDataAndType(Uri.fromFile(imageFile), "image/*");
-                        startActivity(Intent.createChooser(intent, "Select Wallpaper"));
+    private void downloadAndSetWallpaper(String wallUrl) {
+        Glide.with(ImageActivity.this)
+                .asBitmap()
+                .load(wallUrl)
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, Transition<? super Bitmap> transition) {
+                        Uri imageUri = saveImageAndGetUri(resource, wallUrl);
+                        if (imageUri != null) {
+                            Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
+                            intent.addCategory(Intent.CATEGORY_DEFAULT);
+                            intent.setDataAndType(imageUri, "image/jpeg");
+                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            startActivity(Intent.createChooser(intent, "Set as:"));
+                        } else {
+                            Toast.makeText(ImageActivity.this, "Failed to set wallpaper", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    else {
-                        Glide.with(ImageActivity.this)
-                                .asBitmap()
-                                .load(wallUrl)
-                                .into(new SimpleTarget<Bitmap>() {
-                                    @Override
-                                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                                        try {
-                                            wallfile = SaveImage(resource, wallUrl);
-                                            /*Intent intent = new Intent(ImageActivity.this, SetWallpaperActivity.class);
-                                            intent.putExtra("file", wallfile);
-                                            startActivity(intent);*/
-                                            Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
-                                            intent.setDataAndType(Uri.fromFile(wallfile), "image/*");
-                                            startActivity(Intent.createChooser(intent, "Select Wallpaper"));
+                });
+    }
 
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
+    private void downloadAndSaveImage(String wallUrl) {
+        Glide.with(ImageActivity.this)
+                .asBitmap()
+                .load(wallUrl)
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @NonNull Transition<? super Bitmap> transition) {
+                        final Uri imageUri = saveImageAndGetUri(resource, wallUrl);
+                        if (imageUri != null) {
+                            Alerter.create(ImageActivity.this)
+                                    .setTitle("Done")
+                                    .setText("Image saved Successfully")
+                                    .setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            try {
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setDataAndType(imageUri, "image/jpeg");
+                                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                                startActivity(intent);
+                                            } catch (Exception e) {
+                                                Toast.makeText(getApplicationContext(), "Unable to open image!", Toast.LENGTH_SHORT).show();
+                                            }
                                         }
-                                    }
-                                });
+                                    })
+                                    .enableSwipeToDismiss()
+                                    .show();
+                        } else {
+                            Toast.makeText(ImageActivity.this, "Failed to save image", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
-                else{
-                    requestStoragePermission();
-                }
-            }
-        });
-
-
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onBackPressed();
-            }
-        });
-
-
-        downloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                if (isReadStorageAllowed()) {
-                    if (imageFile.isFile()) {
-                        //Toast.makeText(ImageActivity.this, "Already Saved", Toast.LENGTH_SHORT).show();
-                        Alerter.create(ImageActivity.this)
-                                .setTitle("")
-                                .setText("Image Already saved")
-                                .setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        try{
-                                            Intent intent = new Intent(Intent.ACTION_VIEW);
-                                            intent.setDataAndType(Uri.fromFile(imageFile), "image/jpg");
-                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            startActivity(intent);
-                                        } catch(Exception e){
-                                            Toast.makeText(getApplicationContext(), "Unable to open image!", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                })
-                                .enableSwipeToDismiss()
-                                .setBackgroundColorRes(R.color.theft2)
-                                .show();
-                    } else {
-                        Glide.with(ImageActivity.this)
-                                .asBitmap()
-                                .load(wallUrl)
-                                .into(new SimpleTarget<Bitmap>() {
-                                    @Override
-                                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                                        try {
-                                            wallfile = SaveImage(resource, wallUrl);
-                                            //Toast.makeText(ImageActivity.this, "Success", Toast.LENGTH_SHORT).show();
-                                            Alerter.create(ImageActivity.this)
-                                                    .setTitle("Done")
-                                                    .setText("Image saved Successfully")
-                                                    .setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            try{
-                                                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                                intent.setDataAndType(Uri.fromFile(wallfile), "image/jpg");
-                                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                startActivity(intent);
-                                                            } catch(Exception e){
-                                                                Toast.makeText(getApplicationContext(), "Unable to open image!", Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    })
-                                                    .enableSwipeToDismiss()
-                                                    .show();
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
-                    }
-                }
-                else{
-                    requestStoragePermission();
-                }
-            }
-        });
+                });
     }
 
 
+    private Uri saveImageAndGetUri(Bitmap finalBitmap, String name) {
+        String cleanName = name.replaceAll("https://i.imgur.com/", "");
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, cleanName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "Wallpy");
+        } else {
+            File directory = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "Wallpy");
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+            File file = new File(directory, cleanName);
+            values.put(MediaStore.Images.Media.DATA, file.getAbsolutePath());
+        }
 
-
-
-
-
-
-
-
-    private File SaveImage(Bitmap finalBitmap, String name) {
-        name = name.replaceAll("https://i.imgur.com/", "");
-        String fname = name;
-        File imageFile = new File (myDir, fname);
-        if (!(imageFile.exists ())){
-            try {
-                FileOutputStream out = new FileOutputStream(imageFile);
-                finalBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-                out.flush();
-                out.close();
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        if (uri != null) {
+            try (OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
+                finalBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+                return uri;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
-        startService(new Intent(ImageActivity.this, MyScanService.class).putExtra("path", imageFile.toString()));
-        return imageFile;
+        return null;
     }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        //super.onWindowFocusChanged(hasFocus);
+        super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -300,47 +217,43 @@ public class ImageActivity extends AppCompatActivity {
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         }
     }
-    public boolean isReadStorageAllowed() {
-        //Getting the permission status
-        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
-        //If permission is granted returning true
-        if (result == PackageManager.PERMISSION_GRANTED)
-            return true;
-
-        //If permission is not granted returning false
-        return false;
-    }
-    //Requesting permission
-    public void requestStoragePermission(){
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.READ_EXTERNAL_STORAGE)){
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
+    private boolean isStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+            } else {
+                return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            }
+        } else {
+            return true; // Permissions are granted at install time on older versions
         }
-
-        //And finally ask for the permission
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
     }
-    //This method will be called when the user will tap on allow or deny
+
+    private void requestStoragePermission() {
+        String[] permissions;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions = new String[]{Manifest.permission.READ_MEDIA_IMAGES};
+        } else {
+            permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+        }
+        ActivityCompat.requestPermissions(this, permissions, 100);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        //Checking the request code of our request
-        if(requestCode == STORAGE_PERMISSION_CODE){
-
-            //If permission is granted
-            if(grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                //Permission Granted
-            }else{
-                //permission is not granted, Requesting again
-                Toast.makeText(this, "Please click Allow to save Wallpapers in Device!", Toast.LENGTH_SHORT).show();
-                //ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},STORAGE_PERMISSION_CODE);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission granted. You can now save images.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permission denied. You cannot save images.", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-
-    public String convertURLsToOriginal(String url){
+    public String convertURLsToOriginal(String url) {
+        if (url == null) return "";
         url = url.replaceAll("h.jpg", ".jpg");
         url = url.replaceAll("h.png", ".png");
         url = url.replaceAll("h.jpeg", ".jpeg");
@@ -348,6 +261,5 @@ public class ImageActivity extends AppCompatActivity {
         url = url.replaceAll("m.png", ".png");
         url = url.replaceAll("m.jpeg", ".jpeg");
         return url;
-
     }
 }
