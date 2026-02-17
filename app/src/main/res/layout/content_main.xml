@@ -6,22 +6,19 @@
     android:layout_height="match_parent"
     android:background="@color/black"
     tools:context="zaidstudios.wally.Activities.MainActivity"
-    tools:showIn="@layout/app_bar_main"
-    android:weightSum="3">
+    tools:showIn="@layout/app_bar_main">
+
     <ProgressBar
+        android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:id="@+id/progress"/>
+        android:layout_centerInParent="true" />
 
-
-    <GridView
-        android:layout_marginTop="55dp"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:numColumns="3"
-        android:layout_weight="1"
-        android:maxHeight="180dp"
-        android:id="@+id/gridView"></GridView>
+        android:layout_marginTop="55dp"
+        android:numColumns="3" />
 
 </RelativeLayout>

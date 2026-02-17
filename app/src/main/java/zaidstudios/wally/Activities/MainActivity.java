@@ -10,8 +10,6 @@ import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -24,6 +22,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
@@ -40,12 +40,13 @@ import java.util.Collections;
 import java.util.List;
 
 import zaidstudios.wally.Helper.CheckConnection;
-import zaidstudios.wally.Helper.ImageListAdapter;
+import zaidstudios.wally.Helper.GridSpacingItemDecoration;
+import zaidstudios.wally.Helper.WallpaperAdapter;
 import zaidstudios.wally.R;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    GridView gridView;
+    RecyclerView recyclerView;
     ImageView imageView;
     private static final int STORAGE_PERMISSION_CODE = 101;
     int currentVersion = 2;
@@ -67,11 +68,13 @@ public class MainActivity extends AppCompatActivity
 
         loadHDThumb = getSharedPreferences("isHDThumb", MODE_PRIVATE).getBoolean("HDThumb", false);
 
-        gridView = findViewById(R.id.gridView);
+        recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
         imageView = findViewById(R.id.imageView);
-        gridView.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-        gridView.setVisibility(View.INVISIBLE);
+        recyclerView.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+        recyclerView.setVisibility(View.INVISIBLE);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(3, 10, true));
 
         if (!isStoragePermissionGranted()) {
             requestStoragePermission();
@@ -121,7 +124,7 @@ public class MainActivity extends AppCompatActivity
 
     public void loadDownloadedWallpapers() {
         progressBar.setVisibility(View.VISIBLE);
-        gridView.setVisibility(View.INVISIBLE);
+        recyclerView.setVisibility(View.INVISIBLE);
 
         String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/Wallpy";
         File directory = new File(path);
@@ -138,8 +141,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         progressBar.setVisibility(View.INVISIBLE);
-        gridView.setVisibility(View.VISIBLE);
-        loadGrid(downloadedWallpapers);
+        recyclerView.setVisibility(View.VISIBLE);
+        loadRecyclerView(downloadedWallpapers);
         if (downloadedWallpapers.isEmpty()) {
             Toast.makeText(this, "No downloaded wallpapers found.", Toast.LENGTH_SHORT).show();
         }
@@ -147,7 +150,7 @@ public class MainActivity extends AppCompatActivity
 
     public void loadUrlsFromFirebase(String category) {
         progressBar.setVisibility(View.VISIBLE);
-        gridView.setVisibility(View.INVISIBLE);
+        recyclerView.setVisibility(View.INVISIBLE);
         if (!CheckConnection.isOnline(this)) {
             Alerter.create(MainActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
         }
@@ -163,8 +166,8 @@ public class MainActivity extends AppCompatActivity
                         yourStringArray = convertURLsToHD(yourStringArray);
                     }
                     Collections.reverse(yourStringArray);
-                    gridView.setVisibility(View.VISIBLE);
-                    loadGrid(yourStringArray);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    loadRecyclerView(yourStringArray);
                 }
                 progressBar.setVisibility(View.INVISIBLE);
             }
@@ -245,16 +248,8 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void loadGrid(final List<String> url) {
-        gridView.setAdapter(new ImageListAdapter(this, url, imageView));
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent intent = new Intent(getApplicationContext(), ImageActivity.class);
-                intent.putExtra("url", url.get(position));
-                startActivity(intent);
-            }
-        });
+    public void loadRecyclerView(final List<String> url) {
+        recyclerView.setAdapter(new WallpaperAdapter(this, url));
     }
 
     private boolean isStoragePermissionGranted() {
