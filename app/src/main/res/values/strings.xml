@@ -13,4 +13,8 @@
     <string name="my_firebase">https://console.firebase.google.com/project/wally-28638/database/wally-28638/data</string>
     <string name="title_activity_settings">Settings</string>
     <string name="setting_HD_thumb">Load HD Thumbnail(more loading time!)</string>
+
+    <string name="delete">Delete</string>
+    <string name="download">Download</string>
+    <string name="set_as">Set as...</string>
 </resources>

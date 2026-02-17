@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity
     RecyclerView recyclerView;
     ImageView imageView;
     private static final int STORAGE_PERMISSION_CODE = 101;
+    private static final int IMAGE_ACTIVITY_REQUEST_CODE = 102;
     int currentVersion = 2;
 
     private DatabaseReference mDatabaseRef;
@@ -91,6 +93,17 @@ public class MainActivity extends AppCompatActivity
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         loadCategories();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
+            // Refresh the downloaded wallpapers list
+            if (getTitle().equals("Downloads")) {
+                loadDownloadedWallpapers();
+            }
+        }
     }
 
     @Override
@@ -288,9 +301,9 @@ public class MainActivity extends AppCompatActivity
 
     public List<String> convertURLsToHD(List<String> yourStringArray) {
         for (int i = 0; i < yourStringArray.size(); i++) {
-            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpg", "h.jpg"));
-            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.png", "h.png"));
-            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpeg", "h.jepg"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpg", ".jpg"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.png", ".png"));
+            yourStringArray.set(i, yourStringArray.get(i).replaceAll("m.jpeg", ".jpeg"));
         }
         return yourStringArray;
     }

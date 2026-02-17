@@ -40,7 +40,7 @@ public class ImageActivity extends AppCompatActivity {
     ImageView imageView, bImageView;
     TextView loadingTextView;
     ProgressBar progressBar;
-    Button setButton, downloadButton, backButton;
+    Button setButton, downloadButton, backButton, deleteButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,61 +63,110 @@ public class ImageActivity extends AppCompatActivity {
 
         setButton = findViewById(R.id.setButton);
         downloadButton = findViewById(R.id.downloadButton);
+        deleteButton = findViewById(R.id.deleteButton);
         backButton = findViewById(R.id.backButton);
         loadingTextView.setVisibility(View.VISIBLE);
 
         final String imageUrl = getIntent().getStringExtra("url");
 
-        if (imageUrl != null && imageUrl.startsWith("http")) {
-            // It's a remote URL
-            final String wallUrl = convertURLsToOriginal(imageUrl);
-            Glide.with(ImageActivity.this).load(imageUrl).into(bImageView);
+        if (imageUrl != null) {
+            if (imageUrl.startsWith("http")) {
+                // It's a remote URL
+                final String wallUrl = convertURLsToOriginal(imageUrl);
+                if (isImageDownloaded(wallUrl)) {
+                    downloadButton.setVisibility(View.GONE);
+                    deleteButton.setVisibility(View.VISIBLE);
+                } else {
+                    downloadButton.setVisibility(View.VISIBLE);
+                    deleteButton.setVisibility(View.GONE);
+                }
 
-            if (!CheckConnection.isOnline(this)) {
-                Alerter.create(ImageActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
+                Glide.with(ImageActivity.this).load(imageUrl).into(bImageView);
+
+                if (!CheckConnection.isOnline(this)) {
+                    Alerter.create(ImageActivity.this).setText("No Internet Connection!!!").setTitle("Oops!").setIcon(R.drawable.error).setDuration(7000).enableSwipeToDismiss().show();
+                }
+
+                RequestOptions options = new RequestOptions().priority(Priority.HIGH);
+
+                GlideImageLoader gil = new GlideImageLoader(imageView, progressBar, loadingTextView, bImageView, this);
+                gil.load(wallUrl, options);
+
+                setButton.setOnClickListener(v -> {
+                    if (isStoragePermissionGranted()) {
+                        downloadAndSetWallpaper(wallUrl);
+                    } else {
+                        requestStoragePermission();
+                    }
+                });
+
+                downloadButton.setOnClickListener(v -> {
+                    if (isStoragePermissionGranted()) {
+                        downloadAndSaveImage(wallUrl);
+                    } else {
+                        requestStoragePermission();
+                    }
+                });
+
+                deleteButton.setOnClickListener(v -> {
+                    if (isStoragePermissionGranted()) {
+                        deleteImage(wallUrl);
+                    } else {
+                        requestStoragePermission();
+                    }
+                });
+            } else {
+                // It's a local file path
+                downloadButton.setVisibility(View.GONE);
+                deleteButton.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.GONE);
+                loadingTextView.setVisibility(View.GONE);
+                bImageView.setVisibility(View.GONE);
+
+                File localFile = new File(imageUrl);
+                Glide.with(ImageActivity.this).load(localFile).into(imageView);
+
+                setButton.setOnClickListener(v -> {
+                    Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    Uri imageUri = Uri.fromFile(localFile);
+                    intent.setDataAndType(imageUri, "image/jpeg");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(intent, "Set as:"));
+                });
+
+                deleteButton.setOnClickListener(v -> {
+                    deleteImage(imageUrl);
+                });
             }
-
-            RequestOptions options = new RequestOptions().priority(Priority.HIGH);
-
-            GlideImageLoader gil = new GlideImageLoader(imageView, progressBar, loadingTextView, bImageView, this);
-            gil.load(wallUrl, options);
-
-            setButton.setOnClickListener(v -> {
-                if (isStoragePermissionGranted()) {
-                    downloadAndSetWallpaper(wallUrl);
-                } else {
-                    requestStoragePermission();
-                }
-            });
-
-            downloadButton.setOnClickListener(v -> {
-                if (isStoragePermissionGranted()) {
-                    downloadAndSaveImage(wallUrl);
-                } else {
-                    requestStoragePermission();
-                }
-            });
-        } else {
-            // It's a local file path
-            downloadButton.setVisibility(View.GONE);
-            progressBar.setVisibility(View.GONE);
-            loadingTextView.setVisibility(View.GONE);
-            bImageView.setVisibility(View.GONE);
-
-            File localFile = new File(imageUrl);
-            Glide.with(ImageActivity.this).load(localFile).into(imageView);
-
-            setButton.setOnClickListener(v -> {
-                Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
-                intent.addCategory(Intent.CATEGORY_DEFAULT);
-                Uri imageUri = Uri.fromFile(localFile);
-                intent.setDataAndType(imageUri, "image/jpeg");
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(Intent.createChooser(intent, "Set as:"));
-            });
         }
 
         backButton.setOnClickListener(view -> onBackPressed());
+    }
+
+    private boolean isImageDownloaded(String imageUrl) {
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/Wallpy/" + fileName;
+        File file = new File(path);
+        return file.exists();
+    }
+
+    private void deleteImage(String imageUrl) {
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/Wallpy/" + fileName;
+        File file = new File(path);
+        if (file.exists()) {
+            if (file.delete()) {
+                Toast.makeText(this, "Image deleted successfully", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "Image not found", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void downloadAndSetWallpaper(String wallUrl) {
@@ -168,6 +217,8 @@ public class ImageActivity extends AppCompatActivity {
                                     })
                                     .enableSwipeToDismiss()
                                     .show();
+                            downloadButton.setVisibility(View.GONE);
+                            deleteButton.setVisibility(View.VISIBLE);
                         } else {
                             Toast.makeText(ImageActivity.this, "Failed to save image", Toast.LENGTH_SHORT).show();
                         }

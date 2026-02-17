@@ -57,16 +57,27 @@
             android:elevation="20dp"
             android:padding="2dp"
             android:background="@drawable/ripple_draw"
-            android:layout_weight=".5"
-            android:text="Download"/>
+            android:layout_weight=".33"
+            android:text="@string/download"/>
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight=".5"
+            android:layout_weight=".33"
             android:id="@+id/setButton"
-            android:text="Set as...."
+            android:text="@string/set_as"
             android:background="@drawable/ripple_draw"/>
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".33"
+            android:background="@drawable/ripple_draw"
+            android:elevation="20dp"
+            android:padding="2dp"
+            android:text="@string/delete"
+            android:visibility="gone" />
 
     </LinearLayout>
 

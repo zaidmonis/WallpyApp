@@ -1,5 +1,6 @@
 package zaidstudios.wally.Helper;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -24,6 +25,7 @@ public class WallpaperAdapter extends RecyclerView.Adapter<WallpaperAdapter.Wall
 
     private Context context;
     private List<String> wallpaperUrls;
+    private static final int IMAGE_ACTIVITY_REQUEST_CODE = 102;
 
     public WallpaperAdapter(Context context, List<String> wallpaperUrls) {
         this.context = context;
@@ -52,7 +54,7 @@ public class WallpaperAdapter extends RecyclerView.Adapter<WallpaperAdapter.Wall
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ImageActivity.class);
             intent.putExtra("url", wallpaperUrl);
-            context.startActivity(intent);
+            ((Activity) context).startActivityForResult(intent, IMAGE_ACTIVITY_REQUEST_CODE);
         });
     }
 
